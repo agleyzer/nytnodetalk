@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>node.js sampler</title>
+
+  <style>
+  body {
+      font-size: 100%;
+      font-family: "Gill Sans", Helvetica, Arial, sans-serif;
+  }
+
+  h1 {
+      font-weight: normal;
+  }
+
+  .title-slide h1 {
+      text-transform: uppercase;
+   }
+
+  div.slide {
+      width: 30em;
+      height: 20em;
+      border: 1px solid gray;
+      margin: 3em;
+      padding: 1em;
+  }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="slide" data-transition="none"><div class="content title-slide" ref="one/slidesA/1">
+<h1>Load Testing & DNS<br> in Node.js</h1></div>
+alex.gleyzer@nytimes.com
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesA/2">
+<h1>Objective</h1>
+
+<ul>
+<li>Load testing HTTP aplication</li>
+<li>Variable requests</li>
+<li>Response processing</li>
+<li>Custom statistics</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesA/3">
+<h1>Existing options</h1>
+
+<ul>
+<li>ab</li>
+<li>jMeter</li>
+<li>The Grinder</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesA/4">
+<h1>Node.js</h1>
+
+<ul>
+<li>Event-driven</li>
+<li>Non-blocking I/O</li>
+<li>Efficient http client</li>
+<li>Tons of simultaneous connections</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/5">
+<h1>Non-blocking I/O</h1>
+
+<pre class="sh_javascript"><code>httpGet(url, function(err, data) {
+  if (err) throw err;
+  process(data);
+});</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/6">
+<h1>Non-blocking I/O 2</h1>
+
+<pre class="sh_javascript"><code>httpGet(url1, function(err, data) {
+  if (err) throw err;
+  db.insert(data, function(err, id) {
+    if (err) throw err;
+    httpPost(url2, id, function(err, data) {
+      if (err) throw err;
+      log("processed record", id);
+    });
+  });
+});</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/7">
+<h1>Wrong</h1>
+
+<pre class="sh_javascript"><code>while (!isDone()) {
+  httpCall(url, function(err, data) {
+    if (err) throw err;
+    process(data);
+  });
+}</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/8">
+<h1>Right</h1>
+
+<pre class="sh_javascript"><code>function step() {
+    if (isDone()) return;
+    httpCall(url, function(err, data) {
+      if (err) {
+        console.log("Error", err);
+      } else {
+        process(data);
+      }
+      step();
+    });
+}
+step();</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/9">
+<h1>Multiple "threads"</h1>
+
+<pre class="sh_javascript"><code>for (i = 0; i &lt; 100; i++) {
+  step();
+}</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesA/10">
+<h1>Issues</h1>
+
+<ul>
+<li>Keep alive</li>
+<li>Internal connection pooling</li>
+<li>OS resource cleanup</li>
+<li>OSX/Linux inconsistencies</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesA/11">
+<h1>Demo</h1></div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/slidesB/1">
+<h1>DNS Server</h1></div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/slidesB/2">
+<h1>Problem</h1>
+
+<pre><code>webtech-adxmulti-svc-00001
+ec2-50-17-10-127.compute-1.amazonaws.com
+
+webtech-consolidator-svc-00000
+ec2-184-73-209-107.compute-1.amazonaws.com
+
+webtech-consolidator-svc-00001
+ec2-184-73-200-118.compute-1.amazonaws.com
+
+webtech-health-fe-00000
+ec2-50-19-135-91.compute-1.amazonaws.com
+</code></pre></div>
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesB/3">
+<h1>Solution</h1>
+
+<ul>
+<li>Based on Pow! <code>http://pow.cx</code></li>
+<li>OSX /etx/resolver <code>man -s 5 resolver</code></li>
+<li>Node.js dnsserver <code>https://github.com/sh1mmer/dnsserver.js</code></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content bullets&gt;" ref="one/slidesB/4">
+<h1>Solution Contd.</h1>
+
+<ul>
+<li>Launches custom DNS server</li>
+<li>Periodically checks known URL that publishes updates</li>
+<li>If changes are detected, attempts to flush OSX DNS cache</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/slidesB/5">
+<h1>Demo</h1></div>
+</div>
+
+</body>
+</html>
